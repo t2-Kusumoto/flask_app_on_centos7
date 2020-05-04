@@ -1,0 +1,11 @@
+@charset "UTF-8";
+
+body {
+  text-align: center;
+  background: #00284a;
+  color: #fff;
+}
+
+input {
+  margin: 10px;
+}
