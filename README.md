@@ -1,6 +1,7 @@
 # 細かいことは脇に置いといて、とにかくFlaskアプリを本番環境で公開出来るトコまてもっていく手順  
 
----  
+
+## Introduction  
 
 ### 容易に自作Flaskアプリを公開できるようにしたいのです  
 
@@ -17,14 +18,20 @@ Flaskアプリを本番環境で公開しようとWeb上の情報を頼りに作
 
 ## 前提
 
-- 私同様の知識の乏しい素人向け（因みに私は40半ば過ぎのオッサンだ）に書いていますが、基本的なサーバの設定やflaskの取扱については、既に一定の知識がある事を前提に説明しています  
+私同様の知識の乏しい素人向け（因みに私は40半ば過ぎのオッサンだ）に書いていますが、基本的なサーバの設定やflaskの取扱については、既に一定の知識がある事を前提に説明しています
 
-- flaskアプリケーションを`/var/www/flaskapp/`に配置すると仮定して話を進めて行きます。（ディレクトリ名"flaskapp"部分は任意。変更する場合、後に出てくる設定ファイルの内容も置き換えてください）
+- CentOS7 x86_64がインストールされたサーバーが利用できる。
+- サーバーのの基本的な設定が完了している。
+- （FlaskをHTTPS対応させる場合）サーバーのHTTP設定が完了している。
 
 
-## テスト用環境及び実際に作成した本番環境  
+
+
+### テスト用環境及び実際に作成した本番環境  
 
 このページで説明している内容は`virtualbox 6.0`に`CentOS-7-x86_64-Minimal-1908.iso`をインストールして作成した仮想環境で動作確認をしました。
+
+ここでは、flaskアプリケーションを`/var/www/flaskapp/`に配置すると仮定して話を進めて行きます。（ディレクトリ名"flaskapp"部分は任意。変更する場合、後に出てくる設定ファイルの内容も置き換えてください）
 
 ```
 ~$ cat /etc/redhat-release
@@ -42,7 +49,8 @@ Flask 1.1.2
 Werkzeug 1.0.1
 
 ## ソースからpython3.7をコンパイルしたバージョン
-~$
+
+# 現在作成中
 ```
 参考までに、実際に公開している本番環境（さくらのVPS）は以下  
 ```
@@ -115,7 +123,7 @@ export X_SCLS="`scl enable python33 'echo $X_SCLS'`"
 
 ## mod_wsgi のインストール  
 
-######rh-python36をインストールした場合  
+### rh-python36をインストールした場合  
 [参考サイト](https://centos.pkgs.org/7/centos-sclo-rh-x86_64/rh-python36-mod_wsgi-4.5.17-2.el7.x86_64.rpm.html)  
 
 以下のコマンド実行でOKです。  
@@ -125,7 +133,7 @@ export X_SCLS="`scl enable python33 'echo $X_SCLS'`"
 ```
 
 
-###### ソースからPythonをコンパイルした場合
+### ソースからPythonをコンパイルした場合
 
 以後に問題が起こるとしたらここが原因になります　　
 
@@ -209,8 +217,9 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 ~# systemctl restart httpd
 ```  
 
-お疲れ様でした♪  
-後は/var/www/flaskappデイレクトリに作成したアプリケーションをを配置して、あなたのサーバーにアクセスすれば、アプリケーションが動いているはずです。  
+**お疲れ様でした** :relieved:  
+
+後は/var/www/flaskappデイレクトリにアプリケーションをを配置して、あなたのサーバーにアクセスすれば、アプリケーションが動いているはずです。  
 
 ごくシンプルな構成の[サンプルを用意しましたので](https://github.com/t2-Kusumoto/flask_app_on_centos7)、動作確認用に使ってください。
 
@@ -231,79 +240,14 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 
 # 【参考】FlaskアプリをHTTPS対応させる  
 
-**※以下の内容はあくまで本番環境（さくらのVPS）で実施した設定内容となります。**  
-
 ---
 
 先々のことを考えると、HTTPS対応も「公開にあたって、やらなきゃいけない事」と考えておいた方が良いのではないでしょうか？  
 
-尚、Let’s Encryptの導入手順に関する部分は以下の記事の「まんま」です  
-[ネコでもわかる！さくらのVPS講座 ～第六回「無料SSL証明書 Let’s Encryptを導入しよう」](https://knowledge.sakura.ad.jp/10534/)
+サーバーのHTTPS設定は以下のサイトなどが参考になるかと思います  （私も参考にさせていただきました。ありがとうございます 🙇）
 
-
-## まずは下準備  
-
-無料のSSL証明書[Let’s Encrypt](https://letsencrypt.org/ja/)を導入していきます 　
-
-ただ、証明書をインストールする時、Flaskの設定が邪魔になるようなので、先に作成した`flaskapp.conf`ファイル名を一旦`flaskapp.conf,org`などに変更してから`httpd`を再起動しておいたほうが良いようです。  
-
-```
-~# systemctl restart httpd
-```
-
-### ApacheのSSLモジュールmod_ssl が導入されているか確認    
-
-「さくらのVPS」では最初から導入されているそうです。「SSL化してね！」ってことでしょうか。  
-
-```
-~# httpd -M | grep ssl
- ssl_module (shared)
-```  
-
-
-### firewallをhttps通信(ポート443)が通過できる設定になっているか確認  
-
-```
-~# firewall-cmd --list-all
-public (active)
-...
-...
-  services: dhcpv6-client http https pop3
-...
-...
-```  
-
-まだポートが開放していないのなら
-```
-~# firewall-cmd --zone=public --add-service=https --permanent
-
-# 設定変更を反映させる
-~# firewall-cmd --reload
-```  
-
-### Let’s Encryptのインストール  
-
-```
-~# yum install certbot python2-certbot-apache
-```
-
-### certbotコマンドを実行して証明書をインストール  
-
-"example.com" の部分はご自身ののドメイン名に置き換えてください  
-
-
-```
-~# certbot --apache -d example.com
-```  
-
-いろいろ聞かれますが、[上記サイト](https://knowledge.sakura.ad.jp/10534/)を参考に進めていけば問題なく進めると思います　　
-
-完了したらhttpdを再起動
-
-```
-~# systemctl restart httpd
-```
-ご自身のサイトにアクセスして、「安全な接続」となっているか、確認してみてください
+- [ネコでもわかる！さくらのVPS講座 ～第六回「無料SSL証明書 Let’s Encryptを導入しよう」](https://knowledge.sakura.ad.jp/10534/)
+- [REMSYSTEM TECHLOG: CentOS 7とApacheをインストールした環境にLet's EncryptでHTTPSを設定](https://www.rem-system.com/cent-httpd-ssl/)
 
 ## FlaskをHTTPS対応させる  
 
@@ -312,7 +256,22 @@ public (active)
 
 今回は`/var/www/flaskapp`配下に`.well-known`デイレクトリを作成  
 
-`/etc/httpd/conf.d/`配下に`flaskapp.conf`を作成。内容は  
+```
+/var/www/flaskapp/
+          ├──.well-known/ #これを追加
+          │
+          ├── application/
+          │   ├── templates/
+          │   │   ├── hello.tpl
+          │   │   └── index.html
+          │   ├── __init__.py
+          │   └── view.py
+          |
+          └── application.wsgi
+```  
+
+
+先に作成した`/etc/httpd/conf.d/flaskapp.conf`に追記。内容は  
 
 ```
 LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mod_wsgi-py37.cpython-37m-x86_64-linux-gnu.so
@@ -339,10 +298,14 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 </VirtualHost>
 ```  
 
-その後、apache再起動でエラーが出なきゃOK.  
-で、結局あとはなにも変更なし。Flaskのルーティングも結局変更の必要なしだった。
+apache再起動でエラーが出なきゃOK.  
 
-やたら簡単に終わってしまったのだが、これで本当にいいのだろうか？  
+```
+~# systemctl restart httpd
+```
+で...結局、Flaskのルーティングも含め、後は何も変更なしでOKでした。
+
+...やたら簡単に終わってしまったのだが、これで本当にいいのだろうか？  
 
 以上、FlaskをHTTPS対応させる方法でした。
 
@@ -350,8 +313,7 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 そして、本記事を参考にしてくれたあなたが作成したアプリを、いつか私が利用する日が来ることを心から願っております** :heart:
 
 ---  
-###### 以下、泣き言です。読まなくて良いです(苦笑)
-
+### 以下、泣き言です。読まなくて良いです(苦笑)
 
 ## Flaskに関する記事は数多あれど...Web上に公開する方法が解らなきゃ、Flaskを使う意味無くない?  
 
