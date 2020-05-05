@@ -9,8 +9,8 @@ Flaskアプリを本番環境で公開しようとWeb上の情報を頼りに作
 
 **･･･いやもう、ハマった、ハマった** :dizzy_face:
 
-素人でオッサンの私としては、サーバーの設定などの部分には時間をかけないようにして、極力アプリケーションそのものの制作に時間と労力を使いたいんです。  
-もうハッキリ言っちゃえば、そういった部分は理解なんて二の次にして「正解」を「丸写し」してしまいたい。　　
+素人でオッサンの私としては、サーバーの設定などの部分には時間をかけないようにして、極力アプリケーション本体の制作に時間と労力を使いたいんです。  
+もうハッキリ言っちゃえば、そういった部分は理解なんて二の次にして「正解を丸写し」してしまいたい。　　
 
 **･･･だってさぁ、オッサンには時間がないんだもん** :cry:    
 
@@ -21,10 +21,8 @@ Flaskアプリを本番環境で公開しようとWeb上の情報を頼りに作
 私同様の知識の乏しい素人向け（因みに私は40半ば過ぎのオッサンだ）に書いていますが、基本的なサーバの設定やflaskの取扱については、既に一定の知識がある事を前提に説明しています
 
 - CentOS7 x86_64がインストールされたサーバーが利用できる。
-- サーバーのの基本的な設定が完了している。
+- サーバーの基本的な設定が完了している。
 - （FlaskをHTTPS対応させる場合）サーバーのHTTP設定が完了している。
-
-
 
 
 ### テスト用環境及び実際に作成した本番環境  
@@ -69,7 +67,7 @@ Werkzeug 1.0.0
 ```  
 
 因みにこの本番環境にはPython 3.6.8も導入されています  
-（これは何故かと言うと...3.6をインストールしてあったのをド忘れしてしまっていて、3.7もインストールしてしまったのだ!:stuck_out_tongue_closed_eyes: ）
+（これは何故かと言うと...3.6をインストールしてあったのをド忘れしてしまっていて、3.7もインストールしてしまったのだ :stuck_out_tongue_closed_eyes: ）
 
 
 
@@ -147,7 +145,7 @@ export X_SCLS="`scl enable python33 'echo $X_SCLS'`"
 ~# python3 -m "pip3 install mod_wsgi"
 ```  
 
-先にyumでインストールしてしまっている場合、`yum remove mod_wsgi`で削除してしまってください。後からpipでインストールしても、削除しておかないと同じ結果になってしまいます。  
+既にyumでインストールしてしまっている場合、`yum remove mod_wsgi`で削除してしまってください。後からpipでインストールしても、削除しておかないと、同じ結果になってしまいます。  
 
 
 後はFlask自体のインストール。  
@@ -196,7 +194,7 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 #LoadModule wsgi_module /opt/rh/httpd24/root/usr/lib64/httpd/modules/mod_rh-python36-wsgi.so
 
 <VirtualHost *:80>
-    ServerName example.com
+    ServerName <your-server-name>
 
     WSGIDaemonProcess flaskapp user=apache group=apache threads=5
     WSGIScriptAlias / /var/www/flaskapp/application.wsgi
@@ -221,7 +219,7 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 
 後は/var/www/flaskappデイレクトリにアプリケーションをを配置して、あなたのサーバーにアクセスすれば、アプリケーションが動いているはずです。  
 
-ごくシンプルな構成の[サンプルを用意しましたので](https://github.com/t2-Kusumoto/flask_app_on_centos7)、動作確認用に使ってください。
+ごくシンプルな構成のサンプルをこのリポジトリに用意しましたので、動作確認用に使ってください。
 
 
 ```
@@ -256,6 +254,7 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 
 今回は`/var/www/flaskapp`配下に`.well-known`デイレクトリを作成  
 
+
 ```
 /var/www/flaskapp/
           ├──.well-known/ #これを追加
@@ -277,13 +276,13 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mod_wsgi-py37.cpython-37m-x86_64-linux-gnu.so
 
 <VirtualHost *:443>
-    ServerName sakurann-oyaji.info
+    ServerName <your-server-name>
 
-    # 先に作成したファイルに追加した部分
+    # 以下が先に作成したファイルに追加する部分
     SSLEngine on
-    SSLCertificateFile /etc/letsencrypt/live/sakurann-oyaji.info/cert.pem
-    SSLCertificateChainFile /etc/letsencrypt/live/sakurann-oyaji.info/chain.pem
-    SSLCertificateKeyFile /etc/letsencrypt/live/sakurann-oyaji.info/privkey.pem
+    SSLCertificateFile /etc/letsencrypt/live/<your-site-name>/cert.pem
+    SSLCertificateChainFile /etc/letsencrypt/live/<your-site-name>/chain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/<your-site-name>/privkey.pem
     # 以上が追加分
 
     WSGIDaemonProcess flaskapp user=apache group=apache threads=5
@@ -311,21 +310,3 @@ apache再起動でエラーが出なきゃOK.
 
 **ここまで付き合ってくれたあなたに感謝します :bow:  
 そして、本記事を参考にしてくれたあなたが作成したアプリを、いつか私が利用する日が来ることを心から願っております** :heart:
-
----  
-### 以下、泣き言です。読まなくて良いです(苦笑)
-
-## Flaskに関する記事は数多あれど...Web上に公開する方法が解らなきゃ、Flaskを使う意味無くない?  
-
-
-
-Flaskに関する記事って「・・・これでlocalhost:5000にアクセスすれば、はい！"Hello World!"」って記事はいっぱい見つかる。  
-ただ、本番環境で動かすってことになると案外情報が少ない（いやまぁ、理解っている人達には必要ない情報だからなんだろうが...）
-
-Web上の記事を頼りに、なんとか公開できる状態にはなったのだけど、技術的な部分をちゃんと理解せず、テキトーやってるだけの素人のオッサンには結構きつかった・・・「**俺はこういう部分に労力を注ぎ込みたいわけじゃないんだぁー**」って叫びたかったよ、ホント :sob:  
-
-そんなわけで、Flaskアプリケーションを実際にWeb上に公開するための手順を、**詳細は抜きにしてとにかく公開することを念頭に**示してみたんです･･･が、  
-
-**正直、これが正しい手順と言えるのか？...そこんトコロはオッチャンよく分からん。**  
-
-まあでも、最初にも書いた通り、もしも何処かで誰かが困っているのを助けることが出来ていたり、罠にハマることなく本来の目的=アプリケーションの公開、に集中できるようになってくれていたら･･･私はとてもうれしいです。
