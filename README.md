@@ -46,9 +46,11 @@ Python 3.6.9
 Flask 1.1.2
 Werkzeug 1.0.1
 
-## ソースからpython3.7をコンパイルしたバージョン
-
-# 現在作成中
+## ソースコードからpython3.7をビルドしたバージョン
+~$ flask --version
+Python 3.7.6
+Flask 1.1.2
+Werkzeug 1.0.1
 ```
 参考までに、実際に公開している本番環境（さくらのVPS）は以下  
 ```
@@ -81,7 +83,7 @@ Werkzeug 1.0.0
 とはいえ（私もそうでしたが）既に本場環境にPython3系をインストールしている人もいると思われるので
 
 - yumでrh-python36をインストールする  
-- pythonをソースコードからコンパイル   
+- pythonをソースコードからビルド   
 
 両方のパターンをご紹介   
 
@@ -102,7 +104,9 @@ python3.6 のインストール
 rh-python36を有効にするには
 `sudo scl enable rh-python36 bash`を実行する必要がありますが、ログインのたびに入力するのはめんどいので`/etc/profile.d/`に`rh-python36.sh`を作成しました。  
 （参考…というか丸写しさせていただいた[サイトはコチラ](https://mycodingjp.blogspot.com/2018/12/centos-7-python-3.html)。&emsp;ありがとうございます :bow:)  
-内容は  
+内容は以下  
+
+_== rh-python36&#46;sh ==_
 ```
 #!/bin/bash
 source /opt/rh/rh-python36/enable
@@ -110,19 +114,70 @@ export X_SCLS="`scl enable python33 'echo $X_SCLS'`"
 ```  
 
 
-### pyhton3系をソースコードからコンパイル  
+### pyhton3系をソースコードからビルド  
 
-”両方のパターンをご紹介”と、上で書いといて何ですが…これに関しては、いろんなサイトで紹介されていますのでそちらをご覧ください  
 
-因みに、今回私が参考にさせていただいたサイトはこちら（ありがとうございます:bow:）  
-[Narito Blog: CentOS7にPython3.7をインストールする](https://narito.ninja/blog/detail/20/)  
+参考にさせていただいたサイトは以下（ありがとうございます:bow:）  
+- [Python Japan CentOs環境のPython](https://www.python.jp/install/centos/index.html)
+- [Narito Blog: CentOS7にPython3.7をインストールする](https://narito.ninja/blog/detail/20/)  
+
+
+まず、Python3 の[ソースコードを入手](https://www.python.org/downloads/source/)して、解凍しておく。（ここではPython3.7.6をダウンロードしています）
+
+```
+~$ curl https://www.python.org/ftp/python/3.7.6/Python-3.7.6.tgz > Python-3.7.6.tgz
+
+# ダウンロード出来たら解凍
+~$ tar xzf Python3.7.6.tgz
+```  
+
+必要なツール類をダウンロード  
+```
+~$ sudo yum groupinstall "Development tools" --setopt=group_package_types=mandatory,default,optional
+
+~$ sudo yum install bzip2-devel gdbm-devel libffi-devel \
+  libuuid-devel ncurses-devel openssl-devel readline-devel \
+  sqlite-devel tk-devel wget xz-devel zlib-devel
+```  
+
+完了したら解凍したディレクトリに移動して、以下のコマンドを実行していきます（時間かかります）  
+```
+~$ cd Python3.7.6
+~$ ./configure --enable-shared
+~$ make
+-$ sudo make altinstall
+
+# インストール終了後
+~$ sudo sh -c "echo '/usr/local/lib' > /etc/ld.so.conf.d/custom_python3.conf"
+~$ sudo ldconfig
+```  
+
+ここまででエラーがなければ、`python3.7 or python3`コマンドでpythonが起動するはずですが、私は"python3.7"と入力するのが億劫なので、`.bashrc`に以下を追記して`python3, pip3`でpythonが起動するようにしています  
+
+_== .bashrc ==_  
+```
+...
+...
+alias sudu='sudo '
+alias python3='python3.7'
+alias pip3='pip3.7'
+...
+...
+```
+
+因みに、各コマンドについては以下など参考にどうぞ  
+
+- [qiita: configure, make, make install とは何か](https://qiita.com/chihiro/items/f270744d7e09c58a50a5)
+- [SOFTELメモ: shとsourceの違い](https://www.softel.co.jp/blogs/tech/archives/5971)
+- [「分かりそう」で「分からない」でも「分かった」気になれるIT用語辞典: ldconfig【コマンド】とは](https://wa3.i-3-i.info/word13812.html)  
+
 
 ---  
 
 ## mod_wsgi のインストール  
 
 ### rh-python36をインストールした場合  
-[参考サイト](https://centos.pkgs.org/7/centos-sclo-rh-x86_64/rh-python36-mod_wsgi-4.5.17-2.el7.x86_64.rpm.html)  
+[参考サイト pkgs.org: rh-python36-mod_wsgi-4.5.17-2.el7.x86_64.rpm](https://centos.pkgs.org/7/centos-sclo-rh-x86_64/rh-python36-mod_wsgi-4.5.17-2.el7.x86_64.rpm.html)  
 
 以下のコマンド実行でOKです。  
 
@@ -133,7 +188,13 @@ export X_SCLS="`scl enable python33 'echo $X_SCLS'`"
 
 ### ソースからPythonをコンパイルした場合
 
-以後に問題が起こるとしたらここが原因になります　　
+まず、`httpd-devel`モジュールをインストールしておきます  
+
+```
+~$ sudo yum install httpd-devel
+```  
+
+さて...以後に問題が起こるとしたらここが原因になります　　
 
 **yumでmod_wsgiをインストールするとCentOS7にデフォルトで入っているPython2系に紐付いてしまいます。**（改めて見直して気付いたのだけど、[コレ](https://flask.palletsprojects.com/en/1.1.x/deploying/mod_wsgi/)は2系前提の記事だったんだなぁ・・・）  
 それによってpython3系にインストールされたFlaskやらその他のモジュールが見つからなくて`ModuleNotFoundError: No module named 'flask'`とか出てしまいます(※)。  
@@ -142,7 +203,7 @@ export X_SCLS="`scl enable python33 'echo $X_SCLS'`"
 そのことさえ判っていれば、最初からpipでしっかりPython3系に紐付けてインストールすれば良いだけです。  
 
 ```
-~# python3 -m "pip3 install mod_wsgi"
+~$ sudo pip3 install mod_wsgi
 ```  
 
 既にyumでインストールしてしまっている場合、`yum remove mod_wsgi`で削除してしまってください。後からpipでインストールしても、削除しておかないと、同じ結果になってしまいます。  
@@ -150,7 +211,7 @@ export X_SCLS="`scl enable python33 'echo $X_SCLS'`"
 
 後はFlask自体のインストール。  
 ```
-~# pip3 install flask
+~$ sudo pip3 install flask
 ```  
 
 
@@ -161,10 +222,12 @@ _※ 私の場合、`sys.path.append('/flask/module/path')`とか記述してFla
 
 ## .wsgiファイルの作成　　
 
-アプリケーションを起動させるための`.wsgi`ファイル(ここでは名前を`application.wsgi`としています)を作成します。  
+アプリケーションを起動させるための`.wsgi`ファイル(ここでは名前を`application.wsgi`としています)を`/var/www/flaskapp/`ディレクトリに作成します。  
 ファイル名を変更した場合、後に出てくるの設定ファイルの`WSGIScriptAlias`行のファイル名を変更してください　　
 
 ファイルに記述する内容は以下。"&lt;yourapplication&gt;"部分は作成したアプリケーション（`app`オブジェクトを含むファイルまたはパッケージ）名です。
+
+_== application&#46;py ==_
 ```
 #!/usr/bin/env python3
 # -*- coding; utf-8 -*-
@@ -180,25 +243,23 @@ from <yourapplication> import app as application
 ## 設定ファイルの配置  
 
 `/etc/httpd/conf.d/`配下に`flaskapp.conf`ファイルを作成します  
-（ファイル名"flaskapp"部分は任意。お好きな名前にしてください）
+ファイル名"flaskapp"部分は任意です。お好きな名前にしてください。`<your-server-name>`もあなたのサーバーに合わせて置き換えてください(テスト環境なら`exsample.com`等でもOK)
 
-rh-python36-mod_wsgiをインストールした場合、最初の行 `LoadModule wsgi_module`に続くファイルパスは  
+先頭行 `LoadModule wsgi_module`に続くファイルパスは`pip3 show mod_wsgi`で`Location:`行に表示されるファイルパスをさらに辿っていった先にある"&#46;so"拡張子のファイルのパスです  
+
+rh-python36-mod_wsgiをインストールした場合はファイルパスを  
 `/opt/rh/httpd24/root/usr/lib64/httpd/modules/mod_rh-python36-wsgi.so`  
 に置き換えてください  
 
-_flaskapp.conf_
+
+_== flaskapp&#46;conf ==_
 ```
 LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mod_wsgi-py37.cpython-37m-x86_64-linux-gnu.so
 
-# rh-python36-mod_wsgiをインストールした場合
-#LoadModule wsgi_module /opt/rh/httpd24/root/usr/lib64/httpd/modules/mod_rh-python36-wsgi.so
-
 <VirtualHost *:80>
     ServerName <your-server-name>
-
     WSGIDaemonProcess flaskapp user=apache group=apache threads=5
     WSGIScriptAlias / /var/www/flaskapp/application.wsgi
- 　
     <Directory /var/www/flaskapp>
         WSGIProcessGroup flaskapp
         WSGIApplicationGroup %{GLOBAL}
@@ -217,9 +278,10 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 
 **お疲れ様でした** :relieved:  
 
-後は/var/www/flaskappデイレクトリにアプリケーションをを配置して、あなたのサーバーにアクセスすれば、アプリケーションが動いているはずです。  
+後は`/var/www/flaskapp`デイレクトリにアプリケーションをを配置して、あなたのサーバーにアクセスすれば、アプリケーションが動いているはずです。  
 
-ごくシンプルな構成のサンプルをこのリポジトリに用意しましたので、動作確認用に使ってください。
+ごくシンプルな構成のサンプルをこのリポジトリに用意しましたので、動作確認用に使ってください。  
+ファイルの構成は以下
 
 
 ```
@@ -228,9 +290,10 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
           │   ├── templates/
           │   │   ├── hello.tpl
           │   │   └── index.html
+          |   ├── static/
+          |   |   └── styles.css
           │   ├── __init__.py
           │   └── view.py
-          |
           └── application.wsgi
 ```  
 
@@ -272,22 +335,18 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 
 先に作成した`/etc/httpd/conf.d/flaskapp.conf`に追記。内容は  
 
+_== flaskapp&#46;conf ==_
 ```
 LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mod_wsgi-py37.cpython-37m-x86_64-linux-gnu.so
 
 <VirtualHost *:443>
     ServerName <your-server-name>
-
-    # 以下が先に作成したファイルに追加する部分
-    SSLEngine on
+    SSLEngine on　#ここから４行が追加分
     SSLCertificateFile /etc/letsencrypt/live/<your-site-name>/cert.pem
     SSLCertificateChainFile /etc/letsencrypt/live/<your-site-name>/chain.pem
-    SSLCertificateKeyFile /etc/letsencrypt/live/<your-site-name>/privkey.pem
-    # 以上が追加分
-
+    SSLCertificateKeyFile /etc/letsencrypt/live/<your-site-name>/privkey.pem　
     WSGIDaemonProcess flaskapp user=apache group=apache threads=5
     WSGIScriptAlias / /var/www/flaskapp/application.wsgi
-
     <Directory /var/www/flaskapp>
         WSGIProcessGroup flaskapp
         WSGIApplicationGroup %{GLOBAL}
