@@ -271,7 +271,7 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 ```  
 
 
-ファイルの作成が終わったらapachの再起動させて設定を反映させます  
+ファイルの作成が終わったら設定を反映させます  
 
 ```
 ~# systemctl restart httpd
