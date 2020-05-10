@@ -22,7 +22,7 @@ Flaskアプリを本番環境で公開しようとWeb上の情報を頼りに作
 
 - CentOS7 x86_64がインストールされたサーバーが利用できる。
 - サーバーの基本的な設定が完了している。
-- （FlaskをHTTPS対応させる場合）サーバーのHTTPS対応が完了している。
+-（FlaskをHTTPS対応させる場合）サーバーのHTTPS対応が完了している。
 
 
 ### テスト用環境及び実際に作成した本番環境  
@@ -118,7 +118,7 @@ export X_SCLS="`scl enable python33 'echo $X_SCLS'`"
 
 
 参考にさせていただいたサイトは以下（ありがとうございます:bow:）  
-- [Python Japan CentOs環境のPython](https://www.python.jp/install/centos/index.html)
+- [Python Japan: CentOs環境のPython](https://www.python.jp/install/centos/index.html)
 - [Narito Blog: CentOS7にPython3.7をインストールする](https://narito.ninja/blog/detail/20/)  
 
 
@@ -194,28 +194,29 @@ alias pip3='pip3.7'
 ~$ sudo yum install httpd-devel
 ```  
 
-さて...以後に問題が起こるとしたらここが原因になります　　
+さて･･･後の作業で問題が発生するようになるのは、おそらく以下が原因です。　　
 
-**yumでmod_wsgiをインストールするとCentOS7にデフォルトで入っているPython2系に紐付いてしまいます。**（改めて見直して気付いたのだけど、[コレ](https://flask.palletsprojects.com/en/1.1.x/deploying/mod_wsgi/)は2系前提の記事だったんだなぁ・・・）  
+**`yum`でmod_wsgiをインストールするとCentOS7にデフォルトで入っているPython2系に紐付いてしまいます。**  
+（改めて見直して気付いたのだけど、[コレ](https://flask.palletsprojects.com/en/1.1.x/deploying/mod_wsgi/)は2系前提の記事だったんだなぁ・・・）  
+
 それによってpython3系にインストールされたFlaskやらその他のモジュールが見つからなくて`ModuleNotFoundError: No module named 'flask'`とか出てしまいます(※)。  
 
 
-そのことさえ判っていれば、最初からpipでしっかりPython3系に紐付けてインストールすれば良いだけです。  
+そのことさえ解っていれば、最初からpipでしっかりPython3系に紐付けてインストールすれば良いだけです。  
 
 ```
 ~$ sudo pip3 install mod_wsgi
 ```  
 
-既にyumでインストールしてしまっている場合、`yum remove mod_wsgi`で削除してしまってください。後からpipでインストールしても、削除しておかないと、同じ結果になってしまいます。  
+既にyumでインストールしてしまっている場合、`yum remove mod_wsgi`で削除してしまってください。  
 
-
-後はFlask自体のインストール。  
+後はFlaskのインストール。  
 ```
 ~$ sudo pip3 install flask
 ```  
 
 
-_※ 私の場合、`sys.path.append('/flask/module/path')`とか記述してFlaskを読み込めるようにしたら、その後「(2系には無い) `html` モジュールが見つからん」と言われ「（3系で動いているとしか思っていなかったので）_ :confused: _...はぁ???」って状態に陥り、更にそれも解決したと思ったら、「...何故そこでSintax Error???」ってトコでエラーが出るようになり･･･
+_※ 私の場合、`sys.path.append('/flask/module/path')`とか記述してFlaskを読み込めるようにしたら、その後「(2系には無い) `html` モジュールが見つからん」と言われ「（3系で動いているとしか思っていなかったので）_ :confused: _...はぁ???」って状態に陥り、更にそれも解決したと思ったら、「...何故そこで "sintax error"???」ってトコでエラーが出るようになり･･･
 まあ、そんなこんなでさんざんハマった挙句_  _今コレを書いているというわけデス..._ :weary:
 
 ---  
@@ -315,7 +316,7 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 参考サイトは以下（ありがとうございます :bow:）  
 [意外と簡単！FlaskをHTTPS対応する方法【Let’s encrypt】](https://blog.capilano-fw.com/?p=374)  
 
-今回は`/var/www/flaskapp`配下に`.well-known`デイレクトリを作成  
+今回は`/var/www/flaskapp`配下に`.well-known`デイレクトリ(中身は空のまま）を作成  
 
 
 ```
@@ -333,13 +334,13 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 ```  
 
 
-先に作成した`/etc/httpd/conf.d/flaskapp.conf`に追記。内容は  
+先に作成した`/etc/httpd/conf.d/flaskapp.conf`のポート番号を変更、および４行追記。  
 
 _== flaskapp&#46;conf ==_
 ```
 LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mod_wsgi-py37.cpython-37m-x86_64-linux-gnu.so
 
-<VirtualHost *:443>
+<VirtualHost *:443> # 80 -> 443へ変更 
     ServerName <your-server-name>
     SSLEngine on　#ここから４行が追加分
     SSLCertificateFile /etc/letsencrypt/live/<your-site-name>/cert.pem
@@ -356,12 +357,12 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 </VirtualHost>
 ```  
 
-apache再起動でエラーが出なきゃOK.  
+変更後保存して、apache再起動でエラーが出なきゃOK.  
 
 ```
 ~# systemctl restart httpd
 ```
-で...結局、Flaskのルーティングも含め、後は何も変更なしでOKでした。
+で...結局、後はFlaskのルーティングも含め、何も変更なしでOKでした。
 
 ...やたら簡単に終わってしまったのだが、これで本当にいいのだろうか？  
 
