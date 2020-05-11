@@ -9,16 +9,17 @@ Flaskアプリを本番環境で公開しようとWeb上の情報を頼りに作
 
 **･･･いやもう、ハマった、ハマった** :dizzy_face:
 
-素人でオッサンの私としては、サーバーの設定などの部分には時間をかけないようにして、極力アプリケーション本体の制作に時間と労力を使いたいんです。  
-もうハッキリ言っちゃえば、そういった部分は理解なんて二の次にして「正解を丸写し」してしまいたい。　　
+素人でオッサンの私としてはサーバーの設定などの部分には、あまり時間をかけないようにしたい。
+もうハッキリ言っちゃえば、そういった部分は理解なんて二の次にして「正解を丸写し」してしまいたい。
 
 **･･･だってさぁ、オッサンには時間がないんだもん** :cry:    
-
-そんなわけで、このページは同じような考えを持っている人が、同じ目に遭わずに済む事を願って書きました。内容の正確さは保証できませんが、ここに記載したことがあなたの役に立つことがあれば幸いです。  
+極力アプリケーション本体の制作に時間と労力を使いたいんです。
+　　
+そんなわけで、このページは同じような考えを持っている人が、同じ目に遭わずに済む事を願って書きました。内容の正確さは保証できませんが、ここに記載したことの中の何かしらが、どなたかの役に立つことがあれば幸いです。  
 
 ## 前提
 
-私同様の知識の乏しい素人向け（因みに私は40半ば過ぎのオッサンだ）に書いていますが、基本的なサーバの設定やflaskの取扱については、既に一定の知識がある事を前提に説明しています
+私同様の知識の乏しい素人向け（因みに私は40半ば過ぎのオッサンだ）に書いていますが、基本的なサーバの設定やFlaskの取扱については、既に一定の知識がある事を前提に説明しています
 
 - CentOS7 x86_64がインストールされたサーバーが利用できる。
 - サーバーの基本的な設定が完了している。
@@ -102,7 +103,7 @@ python3.6 のインストール
 ```  
 
 rh-python36を有効にするには
-`sudo scl enable rh-python36 bash`を実行する必要がありますが、ログインのたびに入力するのはめんどいので`/etc/profile.d/`に`rh-python36.sh`を作成しました。  
+`sudo scl enable rh-python36 bash`を実行する必要がありますが、ログインのたびに入力するのは面倒なので`/etc/profile.d/`に`rh-python36.sh`を作成しました。  
 （参考…というか丸写しさせていただいた[サイトはコチラ](https://mycodingjp.blogspot.com/2018/12/centos-7-python-3.html)。&emsp;ありがとうございます :bow:)  
 内容は以下  
 
@@ -194,12 +195,14 @@ alias pip3='pip3.7'
 ~$ sudo yum install httpd-devel
 ```  
 
-さて･･･後の作業で問題が発生するようになるのは、おそらく以下が原因です。　　
+さて･･･いざFlaskアプリを動かそうとして、問題が発生するようになるとしたら、おそらく以下の原因によるものかと思われます。　　
 
 **`yum`でmod_wsgiをインストールするとCentOS7にデフォルトで入っているPython2系に紐付いてしまいます。**  
 （改めて見直して気付いたのだけど、[コレ](https://flask.palletsprojects.com/en/1.1.x/deploying/mod_wsgi/)は2系前提の記事だったんだなぁ・・・）  
 
-それによってpython3系にインストールされたFlaskやらその他のモジュールが見つからなくて`ModuleNotFoundError: No module named 'flask'`とか出てしまいます(※)。  
+それによってpython3系にインストールされたFlaskやその他のモジュールが見つからなくて  
+`ModuleNotFoundError: No module named 'flask'`  
+とか出てしまいます(※)。  
 
 
 そのことさえ解っていれば、最初からpipでしっかりPython3系に紐付けてインストールすれば良いだけです。  
@@ -216,7 +219,12 @@ alias pip3='pip3.7'
 ```  
 
 
-_※ 私の場合、`sys.path.append('/flask/module/path')`とか記述してFlaskを読み込めるようにしたら(これで"Hello World!"を表示させるFlaskアプリくらいなら動くようになる)、その後「(2系には無い) `html` モジュールが見つからん」と言われ「（3系で動いているとしか思っていなかったので）_ :confused: _...はぁ???」って状態に陥り、更にそれも解決したと思ったら、「...何故そこで "sintax error"???」ってトコでエラーが出るようになり･･･
+_※ 私の場合、`sys.path.append('/flask/module/path')`とか記述してFlaskを読み込めるようにしたら　　
+(これで"Hello World!"を表示させるFlaskアプリくらいなら動くようになる)  
+「(2系には無い) `html` モジュールが見つからん」と言われ　　
+「（3系で動いているとしか思っていなかったので）_ :confused: _...???」って状態に陥り
+更にそれも解決したと思ったら　　
+「...何故そこで "sintax error"???」って所にエラーが出るようになり･･･
 まあ、そんなこんなでさんざんハマった挙句_  _今コレを書いているというわけデス..._ :weary:
 
 ---  
@@ -247,7 +255,7 @@ from <yourapplication> import app as application
 `/etc/httpd/conf.d/`配下に`flaskapp.conf`ファイルを作成します  
 ファイル名"flaskapp"部分は任意です。お好きな名前にしてください。`<your-server-name>`もあなたのサーバーに合わせて置き換えてください(テスト環境なら`exsample.com`等でもOK)
 
-先頭行 `LoadModule wsgi_module`に続くファイルパスは`pip3 show mod_wsgi`で`Location:`行に表示されるファイルパスをさらに辿っていった先にある"&#46;so"拡張子のファイルのパスです  
+先頭行 `LoadModule wsgi_module`に続くファイルパスは`~$ pip3 show mod_wsgi`で`Location:`行に表示されるファイルパスをさらに辿っていった先にある"&#46;so"拡張子のファイルのパスです  
 
 rh-python36-mod_wsgiをインストールした場合はファイルパスを  
 `/opt/rh/httpd24/root/usr/lib64/httpd/modules/mod_rh-python36-wsgi.so`  
@@ -280,10 +288,10 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 
 **お疲れ様でした** :relieved:  
 
-後は`/var/www/flaskapp`デイレクトリにアプリケーションをを配置して、あなたのサーバーにアクセスすれば、アプリケーションが動いているはずです。  
+後は`/var/www/flaskapp`デイレクトリにFlaskアプリケーションをを配置して、あなたのサーバーにアクセスすれば、アプリケーションが動いてくれるはずです。  
 
 ごくシンプルな構成のサンプルをこのリポジトリに用意しましたので、動作確認用に使ってください。  
-ファイルの構成は以下
+ファイルの構成は以下です。  
 
 
 ```
@@ -301,7 +309,7 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 
 ---  
 
-# 【参考】FlaskアプリをHTTPS対応させる  
+# 【参考】FlaskアプリをHTTPS対応させる（Let's Encryptを導入）  
 
 ---
 
@@ -358,7 +366,7 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 </VirtualHost>
 ```  
 
-変更後保存して、apache再起動でエラーが出なきゃOK.  
+変更後保存して、httpd再起動でエラーが出なきゃOK.  
 
 ```
 ~# systemctl restart httpd
@@ -369,5 +377,5 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 
 以上、FlaskをHTTPS対応させる方法でした。
 
-**ここまで付き合ってくれたあなたに感謝します :bow:  
+**ここまで駄文に付き合ってくださった、あなたに感謝します :bow:  
 そして、本記事を参考にしてくれたあなたが作成したアプリを、いつか私が利用する日が来ることを心から願っております** :heart:
