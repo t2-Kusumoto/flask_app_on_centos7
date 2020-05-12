@@ -229,7 +229,7 @@ alias pip3='pip3.7'
 ## .wsgiファイルの作成　　
 
 アプリケーションを起動させるための`.wsgi`ファイル(ここでは名前を`application.wsgi`としています)を`/var/www/flaskapp/`ディレクトリに作成します。  
-ファイル名を変更した場合、後に出てくるの設定ファイルの`WSGIScriptAlias`行のファイル名を変更してください　　
+ファイル名を変更した場合、後に出てくる設定ファイルの`WSGIScriptAlias`行のファイル名を変更してください　　
 
 ファイルに記述する内容は以下。"&lt;yourapplication&gt;"部分は作成したアプリケーション（`app`オブジェクトを含むファイルまたはパッケージ）名です。(このリポジトリに用意したサンプルの場合`application`)  
 
@@ -306,7 +306,8 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 
 ---  
 
-# 【参考】FlaskアプリのHTTPS対応（Let's Encryptを導入）  
+# 【参考】FlaskアプリのHTTPS対応  
+## （ただし、Let's Encryptを導入した前提）  
 
 ---
 
