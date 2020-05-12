@@ -200,10 +200,11 @@ alias pip3='pip3.7'
 さて･･･いざFlaskアプリを動かそうとして、問題が発生するようになるとしたら、おそらく以下の原因によるものかと思われます。　　
 
 **`yum`でmod_wsgiをインストールするとCentOS7にデフォルトで入っているPython2系に紐付いてしまいます。**  
-（改めて見直して気付いたのだけど、[コレ](https://flask.palletsprojects.com/en/1.1.x/deploying/mod_wsgi/)は2系前提の記事だったんだなぁ・・・）  
+
 
 それによってpython3系にインストールされたFlaskやその他のモジュールが見つからなくて  
 `ModuleNotFoundError: No module named 'flask'`とか出てしまいます(※)。  
+（[コレ](https://flask.palletsprojects.com/en/1.1.x/deploying/mod_wsgi/)は2系前提の記事だったのかなぁ･･･？）  
 
 
 そのことさえ解っていれば、最初からpipでしっかりPython3系に紐付けてインストールすれば良いだけです。  
@@ -220,8 +221,8 @@ alias pip3='pip3.7'
 ```  
 
 
-_※ 私の場合、`sys.path.append('/flask/module/path')`とか記述してFlaskを読み込めるようにしたら(これで"Hello World!"を表示させるFlaskアプリくらいなら動くようになる)、「(2系には無い) `html` モジュールが見つからん」と言われ、「（3系で動いているとしか思っていなかったので）_ :confused: _...???」って状態に陥り、更にそれも解決したと思ったら「...何故そこで "sintax error"???」って所にエラーが出るようになり･･･  
-まあ、そんなこんなでさんざんハマった挙句_  _今コレを書いているというわけデス..._ :weary:
+※ 私の場合、`sys.path.append('/flask/module/path')`とか記述して(これで"Hello World!"を表示させるFlaskアプリくらいなら動くようになる)Flaskを読み込めるようにしたら、(2系には無い)「`html` モジュールが見つからん」と言われ、（3系で動いているとしか思っていなかったので）「:confused: ...???」って状態に陥り、更にそれも解決したと思ったら「...何故そこで "sintax error"???」って所にエラーが出るようになり･･･  
+まあ、そんなこんなでさんざんハマった挙句、今コレを書いているというわけデス...:weary:
 
 ---  
 
@@ -230,7 +231,7 @@ _※ 私の場合、`sys.path.append('/flask/module/path')`とか記述してFla
 アプリケーションを起動させるための`.wsgi`ファイル(ここでは名前を`application.wsgi`としています)を`/var/www/flaskapp/`ディレクトリに作成します。  
 ファイル名を変更した場合、後に出てくるの設定ファイルの`WSGIScriptAlias`行のファイル名を変更してください　　
 
-ファイルに記述する内容は以下。"&lt;yourapplication&gt;"部分は作成したアプリケーション（`app`オブジェクトを含むファイルまたはパッケージ）名です。(このリポジトリに用意したサンプルの場合だと`application`になる)  
+ファイルに記述する内容は以下。"&lt;yourapplication&gt;"部分は作成したアプリケーション（`app`オブジェクトを含むファイルまたはパッケージ）名です。(このリポジトリに用意したサンプルの場合`application`)  
 
 
 _== application&#46;py ==_
@@ -314,7 +315,9 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 サーバーのHTTPS設定は以下のサイトなどが参考になるかと思います  （私も参考にさせていただきました。ありがとうございます 🙇）
 
 - [ネコでもわかる！さくらのVPS講座 ～第六回「無料SSL証明書 Let’s Encryptを導入しよう」](https://knowledge.sakura.ad.jp/10534/)
-- [REMSYSTEM TECHLOG: CentOS 7とApacheをインストールした環境にLet's EncryptでHTTPSを設定](https://www.rem-system.com/cent-httpd-ssl/)
+- [REMSYSTEM TECHLOG: CentOS 7とApacheをインストールした環境にLet's EncryptでHTTPSを設定](https://www.rem-system.com/cent-httpd-ssl/)  
+
+**※尚、Let's Encryptの導入時にFlask用の設定ファイル（上の例では`flaskapp.conf`）が存在しているとエラーが発生します。その場合、一旦、ファイル名を`flaskapp.conf.org`などに変更して無効化しておくことで、上手く導入できました**
 
 ## FlaskをHTTPS対応させる  
 
@@ -340,6 +343,8 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 
 
 先に作成した`/etc/httpd/conf.d/flaskapp.conf`のポート番号を変更、および４行追記。  
+（`<your-site-name>`部分はあなたのサイトのドメイン名に置き換えてください）  
+
 
 _== flaskapp&#46;conf ==_
 ```
