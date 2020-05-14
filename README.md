@@ -95,7 +95,7 @@ Werkzeug 1.0.0
 
 ### rh-python36をインストールする 
 
-私、`rh-python36`のインストールやその後の処理を全てルートユーザーで実行したので（…何も考えていなかった）、ここでもルートユーザーで実行する形になっています
+今回、仮想環境で`rh-python36`をインストールするにあたり、（何も考えず）全て"root"ユーザーで実行したので、ここでも"root"で実行する形になっています
 
 [Python 3.6 by Software Collections](https://www.softwarecollections.org/en/scls/rhscl/rh-python36/)  
 
@@ -291,7 +291,7 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 ファイルの作成が終わったら設定を反映させます  
 
 ```
-~# systemctl restart httpd
+~$ sudo systemctl restart httpd
 ```  
 
 **お疲れ様でした** :relieved:  
@@ -356,9 +356,15 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 ```  
 
 
-先に作成した`/etc/httpd/conf.d/flaskapp.conf`のポート番号を変更、および４行追記。  
-（`<your-site-name>`部分はあなたのサイトのドメイン名に置き換えてください）  
-
+先に作成した`/etc/httpd/conf.d/flaskapp.conf`のポート番号を変更(80 -> 443)  
+さらに以下４行を追記。（`<your-site-name>`部分はあなたのサイトのドメイン名に置き換えてください）  
+```
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/<your-site-name>/cert.pem
+    SSLCertificateChainFile /etc/letsencrypt/live/<your-site-name>/chain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/<your-site-name>/privkey.pem　
+```
+ファイル全体としては以下のようになります。
 
 _== flaskapp&#46;conf ==_
 ```
@@ -384,7 +390,7 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 変更後保存して、httpd再起動でエラーが出なきゃOK.  
 
 ```
-~# systemctl restart httpd
+~$ sudo systemctl restart httpd
 ```
 で...結局、後はFlaskのルーティングも含め、何も変更なしでOKでした。
 
