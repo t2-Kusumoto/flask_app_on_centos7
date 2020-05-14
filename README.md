@@ -308,8 +308,8 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
           │   ├── templates/
           │   │   ├── hello.tpl
           │   │   └── index.html
-          |   ├── static/
-          |   |   └── styles.css
+          │   ├── static/
+          │   │   └── styles.css
           │   ├── __init__.py
           │   └── view.py
           └── application.wsgi
@@ -347,9 +347,11 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
           │   ├── templates/
           │   │   ├── hello.tpl
           │   │   └── index.html
+          │   ├── static/
+          │   │   └── styles.css
           │   ├── __init__.py
           │   └── view.py
-          |
+          │
           └── application.wsgi
 ```  
 
