@@ -309,7 +309,7 @@ LoadModule wsgi_module /usr/local/lib/python3.7/site-packages/mod_wsgi/server/mo
 
 ---  
 
-# 【参考】FlaskアプリのHTTPS対応  
+# 【参考】本番環境のFlaskアプリのHTTPS対応  
 ## （ただし、Let's Encryptを導入した前提）  
 
 ---
