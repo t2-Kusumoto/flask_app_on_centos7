@@ -93,7 +93,9 @@ Werkzeug 1.0.0
 
 両方のパターンをご紹介   
 
-### rh-python36をインストールする  
+### rh-python36をインストールする 
+
+私、`rh-python36`のインストールやその後の処理を全てルートユーザーで実行したので（…何も考えていなかった）、ここでもルートユーザーで実行する形になっています
 
 [Python 3.6 by Software Collections](https://www.softwarecollections.org/en/scls/rhscl/rh-python36/)  
 
@@ -119,7 +121,13 @@ source /opt/rh/rh-python36/enable
 export X_SCLS="`scl enable python33 'echo $X_SCLS'`"
 ```  
 
+`~$ sudo python3`で実行出来るようにするには  
+`visudo`のsudoのパスに`/opt/rh/rh-python36/root/usr/bin/`を追加  
+（今回の仮想環境下では88行目にあった）  
 
+```
+Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/opt/rh/rh-python36/root/usr/bin/
+```
 ### pyhton3系をソースコードからビルド  
 
 
